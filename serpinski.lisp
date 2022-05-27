@@ -1,9 +1,4 @@
-(defpackage #:sdl2-tutorial-08-geometry-rendering
-  (:use :cl)
-  (:export :run))
-
-(in-package :sdl2-tutorial-08-geometry-rendering)
-
+(in-package :sdl2-tutorial-serpinki)
 
 (defparameter *screen-width* 640)
 (defparameter *screen-height* 480)
@@ -48,6 +43,7 @@
                  a1-triangles
                  a2-triangles
                  a3-triangles))))))
+
 
 (defun draw-triangles (renderer triangles)
   (cond
