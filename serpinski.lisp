@@ -1,19 +1,7 @@
 (in-package :sdl2-tutorial-serpinki)
 
-(defparameter *screen-width* 640)
-(defparameter *screen-height* 480)
-
-(defmacro with-window-renderer ((window renderer) &body body)
-  `(sdl2:with-init (:video)
-     (sdl2:with-window (,window
-
-                        :title "SDL2 Tutorial 08"
-                        :w *screen-width*
-                        :h *screen-height*
-                        :flags '(:shown))
-       (sdl2:with-renderer (,renderer ,window :index -1 :flags '(:accelerated))
-         ,@body))))
-
+(defparameter *screen-width* 1024)
+(defparameter *screen-height* 720)
 
 (defun draw-triangle (renderer x1 y1 x2 y2 x3 y3)
   (sdl2:render-draw-line renderer x1 y1 x2 y2)
@@ -61,7 +49,7 @@
                                         `(,(1- *screen-width*) ,(1- *screen-height*))
                                         10)))
 
-    (with-window-renderer (window renderer)
+    (sdl2x:with-window-renderer (window renderer *screen-width* *screen-height*)
       (sdl2:with-event-loop (:method :poll)
         (:quit () t)
         (:idle ()
@@ -83,5 +71,3 @@
                ;; Update screen
 
                (sdl2:render-present renderer))))))
-
-(run)

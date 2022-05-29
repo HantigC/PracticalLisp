@@ -8,4 +8,6 @@
   :serial t
   :depends-on (:sdl2)
   :components ((:file "package")
-               (:file "serpinski")))
+               (:file "utils/sdl2x")
+               (:file "serpinski" :depends-on ("utils/sdl2x"))
+               (:file "sdl2-graphs")))
