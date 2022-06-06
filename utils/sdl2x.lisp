@@ -3,11 +3,11 @@
 (require :sdl2)
 
 
-(defmacro with-window-renderer ((window renderer screen-width screen-height) &body body)
+(defmacro with-window-renderer ((window renderer title screen-width screen-height) &body body)
   `(sdl2:with-init (:video)
      (sdl2:with-window (,window
 
-                        :title "Dummy Title"
+                        :title ,title
                         :w ,screen-width
                         :h ,screen-height
                         :flags '(:shown))

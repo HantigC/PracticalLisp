@@ -49,7 +49,7 @@
                                         `(,(1- *screen-width*) ,(1- *screen-height*))
                                         10)))
 
-    (sdl2x:with-window-renderer (window renderer *screen-width* *screen-height*)
+    (sdl2x:with-window-renderer (window renderer "This" *screen-width* *screen-height*)
       (sdl2:with-event-loop (:method :poll)
         (:quit () t)
         (:idle ()
