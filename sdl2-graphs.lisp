@@ -4,31 +4,16 @@
 (defparameter *screen-width* 640)
 (defparameter *screen-height* 480)
 
+(defparameter *black* '(#x00 #x00 #x00 #xFF))
+(defparameter *black* '(#xFF #xFF #xFF #xFF))
+(defparameter *red* '(#xFF #x00 #x00 #xFF))
+(defparameter *green* '(#x00 #xFF #x00 #xFF))
+(defparameter *blue* '(#x00 #x00 #xFF #xFF))
+
 (defun arange (n &key (start 0) (step 1))
     (loop for i from start to n by step collect i))
 
 
-(defun make-grid (width height stride-x stride-y
-                  &key (start-x 0) (start-y 0) (space-x 0) (space-y 0))
-  (loop for x from start-x to width by stride-x
-        append (loop for y from start-y to height by stride-y
-                     collect `(,x ,y ,(- stride-x space-x) ,(- stride-y space-y)))))
-
-(defun make-rects (width height
-                   &key (x-length nil x-length-p) (y-length nil y-length-p)
-                    (x-slices nil x-slices-p) (y-slices nil y-slices-p))
-
-  (let ((stride-x (cond
-                    (x-length-p x-length)
-                    (x-slices-p (floor width x-slices))
-                    (t (error "specify x-length or x-slices"))))
-        (stride-y (cond
-                    (y-length-p y-length)
-                    (y-slices-p (floor height y-slices))
-                    (t (error "specify x-length or x-slices")))))
-    (loop for rect in (make-grid width height stride-x stride-y)
-          collect (destructuring-bind (x y w h) rect
-                    (sdl2:make-rect x y w h)))))
 
 (defmacro continuable (&body body)
   "Helper macro that we can use to allow us to continue from an
@@ -53,10 +38,13 @@
 
 (defstruct point-2d x y)
 
-(defparameter *neighbours-cross* '((-1 0) (1 0) (0 -1) (0 1)))
+(defparameter *neighbours-cross* '(       (-1 0)
+                                   (-1 0)         (0 1)
+                                          ( 0 1)))
+
 (defparameter *neighbours-squere* '((-1 -1) (0 -1) (1 -1)
-                                    (-1 0) (1 0)
-                                    (-1 1) (0 1) (1 1)))
+                                    (-1  0)        (1  0)
+                                    (-1  1) (0  1) (1  1)))
 
 (defun point-2d-eq (p1 p2)
   (cond
@@ -66,16 +54,8 @@
           (= (point-2d-y p1) (point-2d-y p2))))))
 
 
-(defun get-nbghs (x y
-                  &key
-                    (x-stride 1)
-                    (y-stride 1)
-                    (min-x 0)
-                    (min-y 0)
-                    max-x
-                    max-y
-                    (neighbours-pattern *neighbours-squere*)
-                    (make-it #'list))
+(defun get-nbghs (x y &key (x-stride 1) (y-stride 1) (min-x 0) (min-y 0) max-x max-y
+                    (neighbours-pattern *neighbours-squere*) (make-it #'list))
   (loop for (offset-x offset-y) in neighbours-pattern
         for x-n  = (+ x (* offset-x x-stride))
         for y-n  = (+ y (* offset-y y-stride))
@@ -142,22 +122,43 @@
       rgba
       (sdl2:set-render-draw-color renderer r g b a)))
 
-
-(defun points-2d-to-rects (points rect-width rect-height)
-  (mapcar #'(lambda (p) (point-2d-to-rect p rect-width rect-height))
-          points))
-
 (defparameter *start-color* '(#x99 #x99 #x99 #xFF))
 (defparameter *backgroud-color* '(#xFF #xFF #xFF #xFF))
 (defparameter *grid-color* '(#x00 #x00 #x00 #xFF))
 
 
-(defun make-random-color ()
-  (list (random 256) (random 256) (random 256) #xFF))
-
 (defun clear-renderer (renderer)
   (set-color renderer *backgroud-color*)
   (sdl2:render-clear renderer))
+
+(defmacro with-game
+    ((game-sym renderer &key screen-width screen-height stride-x-size stride-y-size)
+     &body body)
+  `(let ((,game-sym (game:make-game ,renderer
+                                    :screen-width ,screen-width
+                                    :screen-height ,screen-height
+                                    :stride-y-size ,stride-y-size
+                                    :stride-x-size ,stride-x-size)))
+     (progn (game:game-init ,game-sym)
+            ,@body)))
+
+
+(defun run2 ()
+  (sdl2x:with-window-renderer (window renderer "This" *screen-width* *screen-height*
+                               :x 10000 :y 0 :flags '(:shown :always-on-top))
+    (with-game (game-obj (render:make-sdl2-game-renderer renderer)
+                :screen-width *screen-width* :screen-height *screen-height*
+                :stride-y-size 10 :stride-x-size 10)
+      (sdl2:with-event-loop (:method :poll)
+        (:quit () t)
+        (:idle ()
+               ;(render:set-color renderer color:*red*)
+               ;(sdl2:render-draw-rect renderer (sdl2:make-rect 10 10 100 100))
+               (game:update-game game-obj)
+               (game:render-game game-obj)
+               (update-slynk)
+               (sdl2:render-present renderer))))))
+
 
 (defun run ()
   (let* ((x-length (floor *screen-width* 64))

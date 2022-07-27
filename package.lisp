@@ -4,6 +4,49 @@
   (:export :with-window-renderer))
 
 
+(defpackage #:render
+  (:use :cl :sdl2)
+  (:export
+   :draw-rects
+   :draw-rect
+   :sdl2-game-renderer
+   :clear
+   :set-color
+   :make-sdl2-game-renderer))
+
+
+(defpackage #:game
+  (:use :cl)
+  (:export
+   :game-class
+   :make-game
+   :process-game-input
+   :game-init
+   :update-game
+   :render-game))
+
+
+
+(defpackage #:game-object
+  (:use :cl)
+  (:export
+   :game-object-class
+   :grid-go
+   :make-grid-go
+   :draw))
+
+
+(defpackage #:color
+  (:use :cl)
+  (:export
+   :*black*
+   :*white*
+   :*red*
+   :*green*
+   :*blue*
+   :make-random))
+
+
 (defpackage #:sdl2-graphs
   (:use :cl :sdl2x :sdl2)
   (:export :run))
