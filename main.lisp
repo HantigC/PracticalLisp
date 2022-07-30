@@ -1,4 +1,4 @@
-(in-package :sdl2-graphs)
+(in-package :main)
 (require :sdl2)
 
 (defparameter *screen-width* 640)
@@ -21,7 +21,7 @@
             ,@body)))
 
 
-(defun run2 ()
+(defun run ()
   (sdl2x:with-window-renderer (window renderer "This" *screen-width* *screen-height*
                                :x 10000 :y 0 :flags '(:shown :always-on-top))
     (with-game (game-obj (render:make-sdl2-game-renderer renderer)

@@ -1,4 +1,7 @@
 ;;;; package.lisp
+
+
+
 (defpackage #:sdl2x
   (:use :cl :sdl2)
   (:export :with-window-renderer))
@@ -15,6 +18,11 @@
    :make-sdl2-game-renderer))
 
 
+(defpackage #:slyx
+  (:use :cl :slynk)
+  (:export :update-slynk))
+
+
 (defpackage #:game
   (:use :cl)
   (:export
@@ -25,6 +33,15 @@
    :update-game
    :render-game))
 
+
+(defpackage #:graph
+  (:use :cl)
+  (:export
+   :grid-graph-class
+   :squere-type
+   :cross-type
+   :make-grid-graph
+   :get-neighbours))
 
 
 (defpackage #:game-object
@@ -46,8 +63,7 @@
    :*blue*
    :make-random))
 
-
-(defpackage #:sdl2-graphs
+(defpackage #:main
   (:use :cl :sdl2x :sdl2)
   (:export :run))
 
