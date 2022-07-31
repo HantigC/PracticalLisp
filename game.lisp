@@ -45,22 +45,29 @@
 
 (defmethod game-init ((obj game-class))
   (with-slots (game-objects screen-width screen-height stride-x-size stride-y-size) obj
-    (setf game-objects (list (game-object:make-grid-go screen-width screen-height
-                                                       stride-x-size stride-y-size)))))
+    (let ((grid-graph-obj (game-object:make-grid-graph-go)))
+      (game-object:init grid-graph-obj (list :screen-width screen-width
+                                             :screen-height screen-height))
+      (setf game-objects (list grid-graph-obj)))))
 
 
 (defmethod process-game-input ((obj game-class) input)
-  (with-slots (inputs) obj
-    (setf inputs (append inputs (list input)))))
+  (with-slots (inputs game-objects) obj
+    (loop for game-obj in game-objects do
+      (game-object:process-input game-obj input))))
 
 
 (defmethod update-game ((obj game-class))
-  (print "update game"))
+  (print "update game")
+  (with-slots (game-objects) obj
+    (loop for game-obj in game-objects do
+      (game-object:update game-obj))))
+
 
 
 (defmethod render-game ((obj game-class))
   (print "render game")
   (with-slots (renderer game-objects) obj
-    (render:clear renderer :c color:*white*)
+    (render:clear renderer :c color:*red*)
     (loop for game-obj in game-objects
           do (game-object:draw game-obj renderer))))

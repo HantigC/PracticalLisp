@@ -13,6 +13,9 @@
   (:documentation "process input"))
 
 
+(defgeneric color-rect (obj rect color)
+  (:documentation "process input"))
+
 (defgeneric draw-rects (obj rects color)
   (:documentation "process input"))
 
@@ -38,6 +41,11 @@
     (set-color drawer c)
     (sdl2:render-draw-rect drawer rect)))
 
+
+(defmethod color-rect ((obj sdl2-game-renderer) rect c)
+  (with-slots (drawer) obj
+    (set-color drawer c)
+    (sdl2:render-fill-rect drawer rect)))
 
 (defmethod draw-rects ((obj sdl2-game-renderer) rects c)
   (with-slots (drawer) obj

@@ -29,6 +29,8 @@
                 :stride-y-size 10 :stride-x-size 10)
       (sdl2:with-event-loop (:method :poll)
         (:quit () t)
+        (:mousebuttondown (:x x :y y)
+                          (game:process-game-input game-obj (list :mouse-down y x)))
         (:idle ()
                ;(render:set-color renderer color:*red*)
                ;(sdl2:render-draw-rect renderer (sdl2:make-rect 10 10 100 100))

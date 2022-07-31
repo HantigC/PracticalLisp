@@ -14,6 +14,7 @@
    :draw-rect
    :sdl2-game-renderer
    :clear
+   :color-rect
    :set-color
    :make-sdl2-game-renderer))
 
@@ -39,18 +40,23 @@
   (:export
    :grid-graph-class
    :squere-type
+   :bfs
    :cross-type
    :make-grid-graph
    :get-neighbours))
 
 
 (defpackage #:game-object
-  (:use :cl)
+  (:use :cl :trivia)
   (:export
    :game-object-class
+   :init
+   :process-input
+   :update
    :grid-go
    :make-grid-go
-   :draw))
+   :draw
+   :make-grid-graph-go))
 
 
 (defpackage #:color

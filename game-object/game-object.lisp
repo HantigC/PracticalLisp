@@ -12,6 +12,16 @@
     :accessor name
     :initform nil)))
 
+(defgeneric init (obj game-plist)
+  (:documentation "init go"))
+
+(defgeneric process-input (obj input)
+  (:documentation "porcess input game-onbect"))
+
+(defmethod process-input (obj input))
 
 (defgeneric draw (obj renderer)
   (:documentation "Draw game object"))
+
+(defgeneric update (obj)
+  (:documentation "update game object"))

@@ -14,10 +14,7 @@
    (neighbours-pattern :initarg :neighbours-pattern)))
 
 
-(defun list-to-2d-array (list)
-  (make-array (list (length list)
-                    (length (first list)))
-              :initial-contents list))
+
 
 (defparameter *squere-neighbours-pattern*
   '((-1 -1) (-1 0) (-1 1)
@@ -77,7 +74,7 @@
                                             unvisited-neighbours))
                       nil
                  (append unvisited-neighbours
-                            (traverse (append unvisited-neighbours (cdr nodes))))))))))
+                            (traverse (append (cdr nodes) unvisited-neighbours)))))))))
         (cons start-node (traverse (list start-node)))))))
 
 (defmethod get-neighbours ((obj grid-graph-class) item)

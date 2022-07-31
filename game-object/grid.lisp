@@ -10,14 +10,14 @@
 
 (defun make-grid (width height stride-x stride-y
                   &key (start-x 0) (start-y 0) (space-x 0) (space-y 0))
-  (loop for x from start-x to width by stride-x
-        append (loop for y from start-y to height by stride-y
-                     collect `(,x ,y ,(- stride-x space-x) ,(- stride-y space-y)))))
+  (loop for y from start-y below height by stride-y
+        collect (loop for x from start-x below width by stride-x
+                      collect (list y x (- stride-y space-y) (- stride-x space-x)))))
 
 
 (defun make-rects (width height
                    &key (x-length nil x-length-p) (y-length nil y-length-p)
-                    (x-slices nil x-slices-p) (y-slices nil y-slices-p))
+                     (x-slices nil x-slices-p) (y-slices nil y-slices-p))
 
   (let ((stride-x (cond
                     (x-length-p x-length)
@@ -27,9 +27,9 @@
                     (y-length-p y-length)
                     (y-slices-p (floor height y-slices))
                     (t (error "specify x-length or x-slices")))))
-    (loop for rect in (make-grid width height stride-x stride-y)
-          collect (destructuring-bind (x y w h) rect
-                    (sdl2:make-rect x y w h)))))
+    (loop for rects in (make-grid width height stride-x stride-y)
+          collect (loop for (y x h w) in rects
+                        collect (sdl2:make-rect x y w h)))))
 
 
 (defun make-grid-go (width height x-stride y-stride &key (color color:*black*)
