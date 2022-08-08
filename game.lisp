@@ -54,7 +54,7 @@
 (defmethod process-game-input ((obj game-class) input)
   (with-slots (inputs game-objects) obj
     (loop for game-obj in game-objects do
-      (game-object:process-input game-obj input))))
+      (gambe-object:process-input game-obj input))))
 
 
 (defmethod update-game ((obj game-class))

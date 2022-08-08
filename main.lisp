@@ -31,6 +31,9 @@
         (:quit () t)
         (:mousebuttondown (:x x :y y)
                           (game:process-game-input game-obj (list :mouse-down y x)))
+        (:mousemotion (:x x :y y :xrel xrel :yrel yrel :state state)
+                      (when a-down-p
+                        (format t "Mouse clicked way at ~a ~a ~a ~a ~a ~%" x y xrel yrel state)))
         (:idle ()
                ;(render:set-color renderer color:*red*)
                ;(sdl2:render-draw-rect renderer (sdl2:make-rect 10 10 100 100))
