@@ -23,20 +23,19 @@
 
 (defun run ()
   (sdl2x:with-window-renderer (window renderer "This" *screen-width* *screen-height*
-                               :x 10000 :y 0 :flags '(:shown :always-on-top))
+                                      :x 10000 :y 0 :flags '(:shown :always-on-top))
     (with-game (game-obj (render:make-sdl2-game-renderer renderer)
                 :screen-width *screen-width* :screen-height *screen-height*
                 :stride-y-size 10 :stride-x-size 10)
       (sdl2:with-event-loop (:method :poll)
         (:quit () t)
         (:mousebuttondown (:x x :y y)
-                          (game:process-game-input game-obj (list :mouse-down y x)))
+                          (game:process-game-input game-obj (list :mouse-down y x))
+                          (format t "Mouse click way at ~a ~a ~%" x y))
         (:mousemotion (:x x :y y :xrel xrel :yrel yrel :state state)
-                      (when a-down-p
-                        (format t "Mouse clicked way at ~a ~a ~a ~a ~a ~%" x y xrel yrel state)))
+                      (game:process-game-input game-obj (list :mouse-hover y x))
+                      (format t "Mouse hover way at ~a ~a ~a ~a ~a ~%" x y xrel yrel state))
         (:idle ()
-               ;(render:set-color renderer color:*red*)
-               ;(sdl2:render-draw-rect renderer (sdl2:make-rect 10 10 100 100))
                (game:update-game game-obj)
                (game:render-game game-obj)
                (slyx:update-slynk)
