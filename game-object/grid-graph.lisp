@@ -65,7 +65,7 @@
       ((= (length mouse-coords) 1) (destructuring-bind (y x) (car mouse-coords)
                                      (setf (aref colors y x) color:*red*)))
       ((= (length mouse-coords) 2) (let ((new-color (color:make-random))
-                                         (bfs-traverse (graph:bfs grid-graph-obj
+                                         (bfs-traverse (graph:bfs-path grid-graph-obj
                                                                   (cadr mouse-coords)
                                                                   :end-node (car mouse-coords))))
                                      (loop for (y x) in bfs-traverse

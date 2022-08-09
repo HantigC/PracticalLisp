@@ -41,6 +41,7 @@
    :grid-graph-class
    :squere-type
    :bfs
+   :bfs-path
    :cross-type
    :make-grid-graph
    :get-neighbours))

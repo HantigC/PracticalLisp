@@ -77,6 +77,37 @@
                             (traverse (append (cdr nodes) unvisited-neighbours)))))))))
         (cons start-node (traverse (list start-node)))))))
 
+(defmethod bfs-path ((obj grid-graph-class) start-node &key (end-node nil end-node-p))
+  (with-slots (grid-width grid-height) obj
+    (let ((visited-mask (make-array (list grid-height grid-width) :initial-element nil)))
+      (setf-2d visited-mask start-node T)
+      (labels
+          ((traverse (nodes &optional (path nil))
+             (cond
+               ((endp nodes) nil)
+               (T
+                (let* ((curr-node (car nodes))
+                       (unvisited-neighbours
+                         (remove-if #'(lambda (coord) (aref-2d visited-mask coord))
+                                    (get-neighbours obj curr-node))))
+                  (loop for (y x) in unvisited-neighbours
+                        do (setf-2d visited-mask (list y x) T))
+                  (if (and end-node-p (equal curr-node end-node))
+                      path
+                      (traverse (append (cdr nodes) unvisited-neighbours)
+                                (append path (loop for coord in unvisited-neighbours
+                                                   collect (cons coord (list curr-node))))))))))
+           (extract-path (curr-node discoveries)
+             (if
+              (equal start-node curr-node)
+              (list curr-node)
+              (cons curr-node (extract-path (cadr (assoc curr-node discoveries :test #'equal))
+                                            discoveries)))))
+
+
+
+        (extract-path end-node (traverse (list start-node)))))))
+
 (defmethod get-neighbours ((obj grid-graph-class) item)
   (destructuring-bind (y x) item
     (with-slots (neighbours-pattern grid-width grid-height) obj
