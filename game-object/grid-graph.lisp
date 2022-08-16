@@ -54,6 +54,7 @@
             (when (aref colors-lifetime y x)
               (render:color-rect renderer (aref rects y x) color:*green*))))))))
 
+
 (defmethod update ((obj grid-graph-go))
   (with-slots (colors grid-graph-obj mouse-coords hover-coords processed-input colors-lifetime) obj
     (destructuring-bind (h w) (array-dimensions colors-lifetime)
@@ -65,7 +66,7 @@
       ((= (length mouse-coords) 1) (destructuring-bind (y x) (car mouse-coords)
                                      (setf (aref colors y x) color:*red*)))
       ((= (length mouse-coords) 2) (let ((new-color (color:make-random))
-                                         (bfs-traverse (graph:bfs-path grid-graph-obj
+                                         (bfs-traverse (graph:dfs-path grid-graph-obj
                                                                   (cadr mouse-coords)
                                                                   :end-node (car mouse-coords))))
                                      (loop for (y x) in bfs-traverse

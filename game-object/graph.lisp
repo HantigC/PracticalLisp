@@ -7,6 +7,9 @@
 (defgeneric bfs (obj start-node &key end-node)
   (:documentation "Breath First Search"))
 
+(defgeneric dfs (obj start-node &key end-node)
+  (:documentation "Depth First Search"))
+
 
 (defclass grid-graph-class ()
   ((grid-width :initarg :grid-width)
@@ -55,29 +58,49 @@
        (setf (aref ,array-obj ,y-sym ,x-sym) ,val))))
 
 
-(defmethod bfs ((obj grid-graph-class) start-node &key (end-node nil end-node-p))
+(defun traverse (obj start-node &key (end-node nil end-node-p) append-nodes)
   (with-slots (grid-width grid-height) obj
     (let ((visited-mask (make-array (list grid-height grid-width) :initial-element nil)))
       (setf-2d visited-mask start-node T)
       (labels
-          ((traverse (nodes)
+          ((start (nodes)
              (cond
                ((endp nodes) nil)
                (T
                 (let* ((curr-node (car nodes))
-                    (unvisited-neighbours
-                      (remove-if #'(lambda (coord) (aref-2d visited-mask coord))
-                                     (get-neighbours obj curr-node))))
-               (loop for (y x) in unvisited-neighbours
-                     do (setf-2d visited-mask (list y x) T))
+                       (unvisited-neighbours
+                         (remove-if #'(lambda (coord) (aref-2d visited-mask coord))
+                                    (get-neighbours obj curr-node))))
+                  (loop for (y x) in unvisited-neighbours
+                        do (setf-2d visited-mask (list y x) T))
                   (if (and end-node-p (some #'(lambda (coord) (equal coord end-node))
                                             unvisited-neighbours))
                       nil
-                 (append unvisited-neighbours
-                            (traverse (append (cdr nodes) unvisited-neighbours)))))))))
-        (cons start-node (traverse (list start-node)))))))
+                      (append unvisited-neighbours
+                              (start (funcall append-nodes :nodes (cdr nodes)
+                                                           :unvisited-neighbours unvisited-neighbours)))))))))
 
-(defmethod bfs-path ((obj grid-graph-class) start-node &key (end-node nil end-node-p))
+        (cons start-node (start (list start-node)))))))
+
+
+(defun bfs-append (&key nodes unvisited-neighbours)
+  (append nodes unvisited-neighbours))
+
+
+(defun dfs-append (&key nodes unvisited-neighbours)
+  (append unvisited-neighbours nodes ))
+
+
+(defmethod bfs ((obj grid-graph-class) start-node &key end-node)
+  (traverse obj start-node :append-nodes #'bfs-append :end-node end-node))
+
+
+(defmethod dfs ((obj grid-graph-class) start-node &key end-node)
+  (traverse obj start-node :append-nodes #'dfs-append :end-node end-node))
+
+
+(defun traverse-path (obj start-node &key (end-node nil end-node-p) append-nodes)
+
   (with-slots (grid-width grid-height) obj
     (let ((visited-mask (make-array (list grid-height grid-width) :initial-element nil)))
       (setf-2d visited-mask start-node T)
@@ -94,7 +117,8 @@
                         do (setf-2d visited-mask (list y x) T))
                   (if (and end-node-p (equal curr-node end-node))
                       path
-                      (traverse (append (cdr nodes) unvisited-neighbours)
+                      (traverse (funcall append-nodes :nodes (cdr nodes)
+                                                      :unvisited-neighbours unvisited-neighbours)
                                 (append path (loop for coord in unvisited-neighbours
                                                    collect (cons coord (list curr-node))))))))))
            (extract-path (curr-node discoveries)
@@ -105,8 +129,15 @@
                                             discoveries)))))
 
 
-
         (extract-path end-node (traverse (list start-node)))))))
+
+(defmethod bfs-path ((obj grid-graph-class) start-node &key end-node)
+  (traverse-path obj start-node :end-node end-node :append-nodes #'bfs-append))
+
+
+(defmethod dfs-path ((obj grid-graph-class) start-node &key end-node)
+  (traverse-path obj start-node :end-node end-node :append-nodes #'dfs-append))
+
 
 (defmethod get-neighbours ((obj grid-graph-class) item)
   (destructuring-bind (y x) item
