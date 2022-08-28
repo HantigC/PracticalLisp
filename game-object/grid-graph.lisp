@@ -55,6 +55,7 @@
               (render:color-rect renderer (aref rects y x) color:*green*))))))))
 
 
+
 (defmethod update ((obj grid-graph-go))
   (with-slots (colors grid-graph-obj mouse-coords hover-coords processed-input colors-lifetime) obj
     (destructuring-bind (h w) (array-dimensions colors-lifetime)

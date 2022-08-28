@@ -43,6 +43,7 @@
    :bfs
    :dfs
    :bfs-path
+   :uniform-cost-search
    :dfs-path
    :cross-type
    :make-grid-graph

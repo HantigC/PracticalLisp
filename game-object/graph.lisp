@@ -4,9 +4,7 @@
 (defgeneric get-neighbours (obj item)
   (:documentation "Get neighbors for the item"))
 
-(defgeneric bfs (obj start-node &key end-node)
-  (:documentation "Breath First Search"))
-
+(defgeneric bfs (obj start-node &key end-node) (:documentation "Breath First Search"))
 (defgeneric dfs (obj start-node &key end-node)
   (:documentation "Depth First Search"))
 
@@ -16,6 +14,8 @@
    (grid-height :initarg :grid-height)
    (neighbours-pattern :initarg :neighbours-pattern)))
 
+(defclass priority-queue-class ()
+  ((items :initarg :items :initform nil)))
 
 
 
@@ -36,7 +36,7 @@
         (cons cross-type  *cross-neighbours-pattern*)))
 
 
-(defun make-grid-graph (grid-width grid-height &key (neighbours-pattern squere-type))
+(defun make-grid-graph (grid-width grid-height &key (neighbours-pattern cross-type))
   (let ((pattern (cdr (assoc neighbours-pattern pattern-alist))))
     (make-instance 'grid-graph-class
                    :grid-width grid-width
@@ -88,7 +88,7 @@
 
 
 (defun dfs-append (&key nodes unvisited-neighbours)
-  (append unvisited-neighbours nodes ))
+  (append unvisited-neighbours nodes))
 
 
 (defmethod bfs ((obj grid-graph-class) start-node &key end-node)
@@ -120,16 +120,81 @@
                       (traverse (funcall append-nodes :nodes (cdr nodes)
                                                       :unvisited-neighbours unvisited-neighbours)
                                 (append path (loop for coord in unvisited-neighbours
-                                                   collect (cons coord (list curr-node))))))))))
-           (extract-path (curr-node discoveries)
-             (if
-              (equal start-node curr-node)
-              (list curr-node)
-              (cons curr-node (extract-path (cadr (assoc curr-node discoveries :test #'equal))
-                                            discoveries)))))
+                                                   collect (cons coord (list curr-node)))))))))))
 
 
-        (extract-path end-node (traverse (list start-node)))))))
+        (extract-path end-node (traverse (list start-node)) start-node)))))
+
+(defun extract-path (curr-node discoveries start-node)
+  (if
+   (equal start-node curr-node)
+   (list curr-node)
+   (cons curr-node
+         (extract-path (cadr (assoc curr-node discoveries :test #'equal))
+                       discoveries
+                       start-node))))
+
+
+(defmethod add-to-queue ((obj priority-queue-class) item &key cost)
+  (with-slots (items) obj
+    (labels
+        ((add-to-list-ordered (items)
+             (cond
+               ((null items) (list (cons item cost)))
+               ((>= cost (cdar items)) (cons (car items)
+                                            (add-to-list-ordered (cdr items))))
+               (T (cons (cons item cost) items)))))
+      (setf items (add-to-list-ordered items)))))
+
+
+(defmethod update-queue ((obj priority-queue-class) item &key cost)
+  (with-slots (items) obj
+    (setf (cdr (assoc item items)) cost)
+    (setf items (sort items #'(lambda (x y) (< (cdr x) (cdr y)))))))
+
+
+
+(defmethod get-from-queue  ((obj priority-queue-class) item &key (test #'equal))
+  (with-slots (items) obj
+    (assoc item items :test test)))
+
+(defmethod pop-from-queue ((obj priority-queue-class))
+  (with-slots (items) obj
+    (let ((new-items (cdr items))
+          (pop-item (car items)))
+      (setf items new-items)
+      pop-item)))
+
+
+
+(defmethod is-in-queue ((obj priority-queue-class) item &key (test #'equal))
+  (if (get-from-queue obj item :test test) T nil))
+
+
+(defun uniform-cost-search (obj start-node &key end-node)
+  (with-slots (grid-width grid-height) obj
+    (let ((visited-mask (make-array (list grid-height grid-width)
+                                    :initial-element nil))
+          (path-map nil)
+          (priority-queue (make-instance 'priority-queue-class)))
+
+      (add-to-queue priority-queue start-node :cost 0)
+      (loop
+        (destructuring-bind (curr-node . cost) (pop-from-queue priority-queue)
+          (when (equal curr-node end-node) (return (extract-path curr-node path-map start-node)))
+          (setf-2d visited-mask curr-node T)
+          (loop for node in (get-neighbours obj curr-node)
+                do (let ((node-cost (get-from-queue priority-queue node))
+                         (new-cost (+ cost 1)))
+                     (cond
+                       ((null node-cost)
+                        (when (not (aref-2d visited-mask node))
+                          (add-to-queue priority-queue node :cost new-cost)
+                          (setq path-map (cons (cons node (list curr-node)) path-map))))
+                       ((>= (cdr node-cost) new-cost)
+                        (update-queue priority-queue (car node-cost) :cost new-cost)
+                        (setf (cdr (assoc node path-map :test #'equal)) (list curr-node)))))))))))
+
 
 (defmethod bfs-path ((obj grid-graph-class) start-node &key end-node)
   (traverse-path obj start-node :end-node end-node :append-nodes #'bfs-append))
