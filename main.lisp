@@ -23,12 +23,17 @@
 
 (defun run ()
   (sdl2x:with-window-renderer (window renderer "This" *screen-width* *screen-height*
-                                      :x 10000 :y 0 :flags '(:shown :always-on-top))
+                               :x 10000 :y 0 :flags '(:shown :always-on-top))
     (with-game (game-obj (render:make-sdl2-game-renderer renderer)
                 :screen-width *screen-width* :screen-height *screen-height*
                 :stride-y-size 10 :stride-x-size 10)
       (sdl2:with-event-loop (:method :poll)
         (:quit () t)
+
+        (:keydown
+         (:keysym keysym)
+         (when (sdl2:scancode= (sdl2:scancode-value keysym) :scancode-b)
+           (game:process-game-input game-obj (list :key-down "b"))))
         (:mousebuttondown (:x x :y y)
                           (game:process-game-input game-obj (list :mouse-down y x))
                           (format t "Mouse click way at ~a ~a ~%" x y))

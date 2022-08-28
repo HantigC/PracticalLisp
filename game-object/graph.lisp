@@ -1,4 +1,5 @@
 (in-package :graph)
+(require :alexandria)
 
 
 (defgeneric get-neighbours (obj item)
@@ -12,6 +13,7 @@
 (defclass grid-graph-class ()
   ((grid-width :initarg :grid-width)
    (grid-height :initarg :grid-height)
+   (visited-mask :initarg :visited-mask)
    (neighbours-pattern :initarg :neighbours-pattern)))
 
 (defclass priority-queue-class ()
@@ -41,6 +43,7 @@
     (make-instance 'grid-graph-class
                    :grid-width grid-width
                    :grid-height grid-height
+                   :visited-mask (make-array (list grid-height grid-width) :initial-element nil)
                    :neighbours-pattern pattern)))
 
 (defun multiple-2daref (array-obj index-list)
@@ -59,9 +62,9 @@
 
 
 (defun traverse (obj start-node &key (end-node nil end-node-p) append-nodes)
-  (with-slots (grid-width grid-height) obj
-    (let ((visited-mask (make-array (list grid-height grid-width) :initial-element nil)))
-      (setf-2d visited-mask start-node T)
+  (with-slots (grid-width grid-height visited-mask) obj
+    (let ((visited-mask-copy (alexandria:copy-array visited-mask)))
+      (setf-2d visited-mask-copy start-node T)
       (labels
           ((start (nodes)
              (cond
@@ -69,10 +72,10 @@
                (T
                 (let* ((curr-node (car nodes))
                        (unvisited-neighbours
-                         (remove-if #'(lambda (coord) (aref-2d visited-mask coord))
+                         (remove-if #'(lambda (coord) (aref-2d visited-mask-copy coord))
                                     (get-neighbours obj curr-node))))
                   (loop for (y x) in unvisited-neighbours
-                        do (setf-2d visited-mask (list y x) T))
+                        do (setf-2d visited-mask-copy (list y x) T))
                   (if (and end-node-p (some #'(lambda (coord) (equal coord end-node))
                                             unvisited-neighbours))
                       nil
@@ -101,9 +104,9 @@
 
 (defun traverse-path (obj start-node &key (end-node nil end-node-p) append-nodes)
 
-  (with-slots (grid-width grid-height) obj
-    (let ((visited-mask (make-array (list grid-height grid-width) :initial-element nil)))
-      (setf-2d visited-mask start-node T)
+  (with-slots (grid-width grid-height visited-mask) obj
+    (let ((visited-mask-copy (alexandria:copy-array visited-mask)))
+      (setf-2d visited-mask-copy start-node T)
       (labels
           ((traverse (nodes &optional (path nil))
              (cond
@@ -111,10 +114,10 @@
                (T
                 (let* ((curr-node (car nodes))
                        (unvisited-neighbours
-                         (remove-if #'(lambda (coord) (aref-2d visited-mask coord))
+                         (remove-if #'(lambda (coord) (aref-2d visited-mask-copy coord))
                                     (get-neighbours obj curr-node))))
                   (loop for (y x) in unvisited-neighbours
-                        do (setf-2d visited-mask (list y x) T))
+                        do (setf-2d visited-mask-copy (list y x) T))
                   (if (and end-node-p (equal curr-node end-node))
                       path
                       (traverse (funcall append-nodes :nodes (cdr nodes)
@@ -172,23 +175,25 @@
 
 
 (defun uniform-cost-search (obj start-node &key end-node)
-  (with-slots (grid-width grid-height) obj
-    (let ((visited-mask (make-array (list grid-height grid-width)
-                                    :initial-element nil))
+  (with-slots (grid-width grid-height visited-mask) obj
+    (let ((visited-mask-copy (alexandria:copy-array visited-mask))
           (path-map nil)
           (priority-queue (make-instance 'priority-queue-class)))
 
       (add-to-queue priority-queue start-node :cost 0)
       (loop
         (destructuring-bind (curr-node . cost) (pop-from-queue priority-queue)
-          (when (equal curr-node end-node) (return (extract-path curr-node path-map start-node)))
-          (setf-2d visited-mask curr-node T)
+          (when (equal curr-node end-node)
+            (let ((path (extract-path curr-node path-map start-node)))
+              (loop for coord in path do (setf-2d visited-mask coord T))
+              (return path)))
+          (setf-2d visited-mask-copy curr-node T)
           (loop for node in (get-neighbours obj curr-node)
                 do (let ((node-cost (get-from-queue priority-queue node))
                          (new-cost (+ cost 1)))
                      (cond
                        ((null node-cost)
-                        (when (not (aref-2d visited-mask node))
+                        (when (not (aref-2d visited-mask-copy node))
                           (add-to-queue priority-queue node :cost new-cost)
                           (setq path-map (cons (cons node (list curr-node)) path-map))))
                        ((>= (cdr node-cost) new-cost)

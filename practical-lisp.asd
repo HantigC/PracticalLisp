@@ -6,7 +6,7 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (:sdl2 :trivia)
+  :depends-on (:sdl2 :trivia :alexandria)
   :components ((:file "package")
                (:file "utils/slyx")
                (:file "color")
